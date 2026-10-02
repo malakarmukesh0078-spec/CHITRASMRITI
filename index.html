@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frame & Light Photography</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F2F4F4;--surface:#fff;--ink:#1B2430;--muted:#5E6A75;--line:#D8DDDF;--accent:#2F5D62;--shade:rgba(27,36,48,.55);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12171C;--surface:#1B2229;--ink:#EEF1F2;--muted:#9AA6AF;--line:#2C363F;--shade:rgba(0,0,0,.65)}}
+:root[data-theme="dark"]{--bg:#12171C;--surface:#1B2229;--ink:#EEF1F2;--muted:#9AA6AF;--line:#2C363F;--shade:rgba(0,0,0,.65)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 Figtree,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px clamp(20px,5vw,64px)}
+.logo{font:400 24px 'Instrument Serif',Georgia,serif}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:6px;padding:12px 22px;font-weight:600;display:block;width:100%;text-align:center;text-decoration:none}
+.btn.auto{width:auto;display:inline-block}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.x:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,5vw,72px);align-items:center;padding:clamp(24px,6vw,72px) clamp(20px,5vw,64px);max-width:1200px;margin:0 auto}
+h1{font:400 clamp(40px,7vw,84px)/1.02 'Instrument Serif',Georgia,serif;margin:0 0 20px;letter-spacing:-.01em}
+.hero p{color:var(--muted);max-width:44ch;margin:0 0 28px;white-space:pre-line}
+.frame{position:relative;aspect-ratio:4/5;border-radius:4px;background:linear-gradient(160deg,#9DB8B8,#5B7F85 45%,#243B44) center/cover;overflow:hidden}
+.frame.ph::before{content:"";position:absolute;inset:7%;border:1px solid rgba(255,255,255,.7)}
+.strip{display:flex;gap:28px;flex-wrap:wrap;justify-content:center;padding:28px 20px 48px;color:var(--muted);border-top:1px solid var(--line);max-width:1200px;margin:0 auto}
+.modal{position:fixed;inset:0;background:var(--shade);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10;overflow-y:auto}
+.modal[hidden]{display:none}
+.card{background:var(--surface);width:100%;max-width:480px;border-radius:10px;padding:28px;position:relative;margin:auto;animation:pop .25s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.card{animation:none}}
+.card h2{font:400 30px/1.1 'Instrument Serif',serif;margin:0 0 6px}
+.sub{color:var(--muted);margin:0 0 20px;font-size:15px}
+.x{position:absolute;top:12px;right:14px;background:none;border:0;font-size:26px;color:var(--muted);line-height:1}
+label{display:block;font-weight:500;font-size:14px;margin:14px 0 6px}
+input,select,textarea{width:100%;font:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+input[type=color]{padding:2px;height:42px}
+input[type=checkbox]{width:auto}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.row{grid-template-columns:1fr}}
+.card .btn{margin-top:22px}
+.err{color:#B3402F;font-size:13px;margin:6px 0 0;min-height:1em}
+.done{text-align:center;padding:12px 0}
+#adminBtn{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:5;width:auto;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+#adminRoot .panel{position:fixed;top:0;right:0;bottom:0;width:min(380px,100%);background:var(--surface);border-left:1px solid var(--line);z-index:20;overflow-y:auto;padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
+.panel h3{margin:0 0 4px;font:400 26px 'Instrument Serif',serif}
+.panel .tools{display:flex;gap:8px}
+.panel .tools .btn{margin-top:18px}
+.st{font-size:13px;color:var(--muted);min-height:1.2em;margin-top:8px}
+@media (max-width:760px){.hero{grid-template-columns:1fr}.frame{aspect-ratio:16/10}}
+</style>
+</head>
+<body>
+<div id="site"></div>
+<div id="adminRoot"></div>
+<script id="cfg" type="application/json">{"name":"Frame & Light","h1":"Photographs that keep the day as it felt.","sub":"Weddings, portraits, events and brand shoots. Tell us what you are planning and we will reply with availability and a quote.","cta":"Book a shoot","services":["Wedding","Pre-wedding","Engagement","Birthday / Party","Corporate event","Portrait / Fashion","Product / Brand","Other"],"budgets":["Under ₹25,000","₹25,000 – ₹50,000","₹50,000 – ₹1,00,000","₹1,00,000 – ₹2,50,000","Above ₹2,50,000"],"sources":["Instagram","Facebook","Google search","Friend / Referral","Previous client","Other"],"wa":"918770644974","accent":"#2F5D62","popup":true,"popTitle":"Book your shoot","popSub":"Fill in the details and we will get back to you within a day.","hero":"","ph":"ce7245628b1415435baad3666c85a0a9483d04e9fdf6420446cba69caed9cb30"}</script>
+<script>
+let cfg=JSON.parse(document.getElementById('cfg').textContent),isOpen=false,isAdmin=false;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const opts=(a,ph)=>`<option value="">${ph}</option>`+a.map(x=>`<option>${esc(x)}</option>`).join('');
+function render(){
+  document.documentElement.style.setProperty('--accent',cfg.accent);
+  document.title=cfg.name;
+  $('site').innerHTML=`
+  <header><span class="logo">${esc(cfg.name)}</span><button class="btn ghost auto" data-open>${esc(cfg.cta)}</button></header>
+  <main><section class="hero"><div><h1>${esc(cfg.h1)}</h1><p>${esc(cfg.sub)}</p><button class="btn auto" data-open>${esc(cfg.cta)}</button></div>
+  <div class="frame ${cfg.hero?'':'ph'}" role="img" aria-label="Featured photograph" ${cfg.hero?`style="background-image:url('${cfg.hero}')"`:''}></div></section>
+  <div class="strip">${cfg.services.map(s=>`<span>${esc(s)}</span>`).join('')}</div></main>
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="t" ${isOpen?'':'hidden'}><div class="card">
+  <button class="x" aria-label="Close" data-close>&times;</button>
+  <form id="f" novalidate><h2 id="t">${esc(cfg.popTitle)}</h2><p class="sub">${esc(cfg.popSub)}</p>
+  <label for="prog">What are you booking for?</label><select id="prog">${opts(cfg.services,'Select a program')}</select>
+  <div class="row"><div><label for="date">Date</label><input type="date" id="date" min="${new Date().toISOString().split('T')[0]}"></div>
+  <div><label for="budget">Budget</label><select id="budget">${opts(cfg.budgets,'Select range')}</select></div></div>
+  <label for="name">Your name</label><input id="name" autocomplete="name">
+  <div class="row"><div><label for="phone">Phone / WhatsApp</label><input id="phone" type="tel" autocomplete="tel"></div>
+  <div><label for="email">Email</label><input id="email" type="email" autocomplete="email"></div></div>
+  <label for="src">How did you find us?</label><select id="src">${opts(cfg.sources,'Select one')}</select>
+  <p class="err" id="err" role="alert"></p><button class="btn" type="submit">Send booking request</button></form>
+  <div class="done" id="done" hidden><h2>Request sent</h2><p class="sub" id="sum"></p>
+  <a class="btn" id="wa" href="#" target="_blank" rel="noopener">Send on WhatsApp to confirm</a><button class="btn ghost" data-close>Close</button></div></div></div>
+  ${isAdmin?'<button class="btn auto" id="adminBtn" data-admin>Edit website</button>':''}`;
+}
+function setOpen(v){isOpen=v;const m=$('modal');if(m){m.hidden=!v;if(v){$('f').hidden=false;$('done').hidden=true;setTimeout(()=>$('prog').focus(),50)}}}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-open],[data-close],[data-admin],.modal');
+  if(!t)return;
+  if(t.matches('[data-open]'))setOpen(true);
+  else if(t.matches('[data-close]')||(t.classList.contains('modal')&&e.target===t))setOpen(false);
+  else if(t.matches('[data-admin]'))openAdmin();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false)});
+document.addEventListener('submit',e=>{
+  if(e.target.id!=='f')return;e.preventDefault();
+  const v=id=>$(id).value.trim();
+  const miss=[['prog','a program'],['date','a date'],['budget','a budget'],['name','your name'],['phone','a phone number'],['src','how you found us']].find(([id])=>!v(id));
+  if(miss){$('err').textContent='Please add '+miss[1]+'.';$(miss[0]).focus();return}
+  if(v('phone').replace(/\D/g,'').length<10){$('err').textContent='Enter a phone number with at least 10 digits.';return}
+  $('err').textContent='';
+  const date=new Date(v('date')).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  const msg=`New booking request\nProgram: ${v('prog')}\nDate: ${date}\nBudget: ${v('budget')}\nName: ${v('name')}\nPhone: ${v('phone')}\nEmail: ${v('email')||'-'}\nFound us via: ${v('src')}`;
+  let n=cfg.wa.replace(/\D/g,'');if(n.length===10)n='91'+n;
+  $('wa').href='https://wa.me/'+n+'?text='+encodeURIComponent(msg);
+  $('sum').textContent=`Thanks ${v('name')}. Tap the button below to send your details on WhatsApp so we can confirm your ${v('prog').toLowerCase()} for ${date}.`;
+  $('f').hidden=true;$('done').hidden=false;
+});
+
+/* Admin panel */
+const F=[['name','Studio name'],['h1','Main headline'],['sub','Intro text','t'],['cta','Button text'],['services','Programs (one per line)','l'],['budgets','Budget ranges (one per line)','l'],['sources','"Found us via" options (one per line)','l'],['wa','WhatsApp number with country code'],['accent','Accent color','c'],['popTitle','Popup title'],['popSub','Popup text','t']];
+const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+let unlocked=false;
+function lock(){
+  $('adminRoot').innerHTML=`<div class="panel"><h3>Admin login</h3><p class="sub">Enter the admin password to edit the website.</p>
+  <label for="l_pw">Password</label><input id="l_pw" type="password" autocomplete="current-password">
+  <div class="tools"><button class="btn" id="l_go">Unlock</button><button class="btn ghost" id="a_close">Close</button></div><p class="st" id="l_st"></p></div>`;
+  setTimeout(()=>$('l_pw')&&$('l_pw').focus(),50);
+}
+function openAdmin(){
+  if(!unlocked)return lock();
+  $('adminRoot').innerHTML=`<div class="panel"><h3>Edit website</h3><p class="sub">Changes show instantly. Press Save to make them live.</p>
+  ${F.map(([k,l,t])=>`<label for="a_${k}">${l}</label>`+(t==='l'||t==='t'?`<textarea id="a_${k}" data-k="${k}" data-t="${t}" rows="${t==='l'?5:3}">${esc(t==='l'?cfg[k].join('\n'):cfg[k])}</textarea>`:`<input id="a_${k}" data-k="${k}" data-t="${t||''}" ${t==='c'?'type="color"':''} value="${esc(cfg[k])}">`)).join('')}
+  <label><input type="checkbox" id="a_popup" ${cfg.popup?'checked':''}> Show booking form when the site opens</label>
+  <label for="a_pw">New admin password (leave empty to keep current)</label><input id="a_pw" type="password" autocomplete="new-password">
+  <label for="a_hero">Main photo</label><input type="file" id="a_hero" accept="image/*">
+  <div class="tools"><button class="btn ghost" id="a_rm">Remove photo</button></div>
+  <div class="tools"><button class="btn" id="a_save">Save &amp; publish</button><button class="btn ghost" id="a_close">Close</button></div>
+  <p class="st" id="a_st"></p></div>`;
+}
+const stat=t=>{const s=$('a_st');if(s)s.textContent=t};
+document.addEventListener('input',e=>{
+  const el=e.target;if(!el.closest('#adminRoot')||el.id==='a_pw'||el.id==='l_pw')return;
+  if(el.id==='a_popup'){cfg.popup=el.checked;return}
+  const k=el.dataset.k;if(!k)return;
+  cfg[k]=el.dataset.t==='l'?el.value.split('\n').map(s=>s.trim()).filter(Boolean):el.value;
+  render();
+});
+document.addEventListener('change',e=>{
+  if(e.target.id!=='a_hero'||!e.target.files[0])return;
+  const img=new Image();img.onload=()=>{const s=Math.min(1,1000/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);cfg.hero=c.toDataURL('image/jpeg',.82);render();stat('Photo added. Press Save to publish.')};
+  img.src=URL.createObjectURL(e.target.files[0]);
+});
+document.addEventListener('click',async e=>{
+  const id=e.target.id;
+  if(id==='a_close')$('adminRoot').innerHTML='';
+  if(id==='l_go'){
+    try{if(await sha($('l_pw').value)===cfg.ph){unlocked=true;openAdmin()}else $('l_st').textContent='Wrong password.'}
+    catch(err){$('l_st').textContent='Login is not available in this browser.'}
+  }
+  if(id==='a_rm'){cfg.hero='';render()}
+  if(id==='a_save'){
+    stat('Publishing...');
+    try{
+      const np=$('a_pw').value;
+      if(np){if(np.length<6){stat('New password must be at least 6 characters.');return}cfg.ph=await sha(np)}
+      const res=await fetch('/api/save-config',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(cfg)
+      });
+      if(res.ok){stat('Saved & published! Reloading...');setTimeout(()=>location.reload(),600)}
+      else{stat('Server error. Could not publish.')}
+    }catch(err){stat('Could not publish: '+(err&&err.code||'error'))}
+  }
+});
+render();
+setOpen(!!cfg.popup);
+(async()=>{try{if(window.location.pathname==='/admin'){isAdmin=true;render()}}catch(e){}})();
+</script>
+</body>
+</html>
