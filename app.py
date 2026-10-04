@@ -1,26 +1,26 @@
 """
-Frame & Light Photography – Flask Backend
-Run: python app.py
-Then open: http://localhost:5000  (public site)
-           http://localhost:5000/admin  (admin panel)
+Frame & Light Photography – Flask Backend (Railway-ready)
 """
 
 import json
 import os
 import hashlib
+import re
 from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory, abort, Response
 
 app = Flask(__name__, static_folder=None)
 
 # ------------------------------------------------------------------
-# Paths & defaults
+# Paths – Railway filesystem is writable
 # ------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent
 CONFIG_FILE = BASE_DIR / "config.json"
 HTML_FILE = BASE_DIR / "index.html"
 
-# Default configuration – mirrors the JSON inside the HTML <script id="cfg">
+# ------------------------------------------------------------------
+# Default configuration
+# ------------------------------------------------------------------
 DEFAULT_CONFIG = {
     "name": "Frame & Light",
     "h1": "Photographs that keep the day as it felt.",
@@ -57,14 +57,12 @@ DEFAULT_CONFIG = {
 # Config helpers
 # ------------------------------------------------------------------
 def load_config() -> dict:
-    """Load config.json; if missing/corrupt, fall back to defaults."""
+    """Load config.json; fall back to defaults if missing/corrupt."""
     if CONFIG_FILE.exists():
         try:
             with CONFIG_FILE.open("r", encoding="utf-8") as f:
                 data = json.load(f)
-            # Merge with defaults so missing keys never break the page
-            merged = {**DEFAULT_CONFIG, **data}
-            return merged
+            return {**DEFAULT_CONFIG, **data}
         except (json.JSONDecodeError, OSError):
             pass
     return dict(DEFAULT_CONFIG)
@@ -77,7 +75,7 @@ def save_config(cfg: dict) -> None:
 
 
 # ------------------------------------------------------------------
-# HTML rendering – injects current config into the page
+# HTML rendering – injects config into the page
 # ------------------------------------------------------------------
 def render_html() -> str:
     if not HTML_FILE.exists():
@@ -85,12 +83,8 @@ def render_html() -> str:
 
     html = HTML_FILE.read_text(encoding="utf-8")
     cfg = load_config()
-
-    # Safely embed JSON (escape </script> to prevent breaking out)
     cfg_json = json.dumps(cfg, ensure_ascii=False).replace("</", "<\\/")
 
-    # Replace the contents of <script id="cfg" ...>...</script>
-    import re
     pattern = re.compile(
         r'(<script\s+id="cfg"[^>]*>)(.*?)(</script>)',
         re.DOTALL | re.IGNORECASE,
@@ -102,12 +96,10 @@ def render_html() -> str:
             count=1,
         )
     else:
-        # Fallback: inject before </body>
         html = html.replace(
             "</body>",
             f'<script id="cfg" type="application/json">{cfg_json}</script>\n</body>'
         )
-
     return html
 
 
@@ -122,36 +114,30 @@ def index():
 
 @app.route("/admin")
 def admin():
-    """Admin panel – serves the same page; JS detects /admin and unlocks UI."""
+    """Admin panel – same HTML, JS detects /admin path."""
     return Response(render_html(), mimetype="text/html")
 
 
 @app.route("/api/config", methods=["GET"])
 def get_config():
-    """Return current config as JSON (used for debugging / integrations)."""
+    """Return current config as JSON."""
     return jsonify(load_config())
 
 
 @app.route("/api/save-config", methods=["POST"])
 def save_config_endpoint():
-    """
-    Save updated config sent from the admin panel.
-    Expects JSON body matching the cfg object.
-    """
+    """Save updated config from admin panel."""
     try:
         new_cfg = request.get_json(force=True, silent=False)
         if not isinstance(new_cfg, dict):
             return jsonify({"error": "Invalid payload"}), 400
 
-        # Basic sanity check – keep password hash if not provided
         current = load_config()
         if "ph" not in new_cfg or not new_cfg["ph"]:
             new_cfg["ph"] = current.get("ph", DEFAULT_CONFIG["ph"])
 
-        # Merge on top of defaults to keep unknown fields consistent
         merged = {**DEFAULT_CONFIG, **new_cfg}
         save_config(merged)
-
         return jsonify({"ok": True, "message": "Config saved"}), 200
 
     except Exception as e:
@@ -160,10 +146,7 @@ def save_config_endpoint():
 
 @app.route("/api/verify-password", methods=["POST"])
 def verify_password():
-    """
-    Optional server-side password check.
-    Body: {"password": "..."}
-    """
+    """Optional server-side password check."""
     data = request.get_json(silent=True) or {}
     pw = data.get("password", "")
     cfg = load_config()
@@ -172,11 +155,18 @@ def verify_password():
 
 
 # ------------------------------------------------------------------
-# Static files fallback (in case HTML references local assets later)
+# Health check (Railway uses this to verify the app is up)
+# ------------------------------------------------------------------
+@app.route("/healthz")
+def healthz():
+    return jsonify({"ok": True}), 200
+
+
+# ------------------------------------------------------------------
+# Static files fallback (LAST so it doesn't shadow /api, /admin)
 # ------------------------------------------------------------------
 @app.route("/<path:filename>")
 def static_files(filename):
-    # Only allow safe, non-hidden files from BASE_DIR
     safe_path = (BASE_DIR / filename).resolve()
     if not str(safe_path).startswith(str(BASE_DIR)):
         abort(404)
@@ -189,14 +179,12 @@ def static_files(filename):
 # Entry point
 # ------------------------------------------------------------------
 if __name__ == "__main__":
-    # Ensure a config file exists on first run
     if not CONFIG_FILE.exists():
         save_config(dict(DEFAULT_CONFIG))
         print(f"[init] Created default {CONFIG_FILE.name}")
 
     port = int(os.environ.get("PORT", 5000))
-    debug = os.environ.get("FLASK_DEBUG", "1") == "1"
     print(f"→ Public site : http://localhost:{port}/")
     print(f"→ Admin panel : http://localhost:{port}/admin")
-    print(f"→ Default password: admin123  (change it from the admin panel)")
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    print(f"→ Default password: admin123")
+    app.run(host="0.0.0.0", port=port)
